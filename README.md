@@ -25,21 +25,20 @@ Find schematic as PDF [here](./ECAD/USB-C_PSU_Simulator.pdf)
 - execute e.g. 'python configSTUSB4710.py' in the 'Software' subdirectory
 ```
 python configSTUSB4710.py
-usage: configSTUSB4710.py [-h] [--setToleranceVBUS [0-15]] [--setSRC SETSRC [SETSRC ...]] [--printRDO] [--printSRC]
-                          [--printNVM] [--printToleranceVBUS] [--printVBUSControl] [--printPortStatus]
+usage: configSTUSB4710.py [-h] [-r] [--setToleranceVBUS [0-15]] [--setPDO SETPDO [SETPDO ...]] [--printRDO] [--printPDO] [--printNVM] [--printToleranceVBUS] [--printVBUSControl] [--printPortStatus]
                           [--printSTUSBVersion] [-v]
 
 Configure STUSB4710 for USB-C PD power supply simulation; (c) 12/2022 Steffen Mauch; MIT license
 
 optional arguments:
   -h, --help            show this help message and exit
+  -r, --resetSTUSB      reset STUSB4710 via command
   --setToleranceVBUS [0-15]
                         set additional VBUS tolerance in percent of STUSB4710
-  --setSRC SETSRC [SETSRC ...]
-                        modify SRC of STUSB4710; first argument selects SR;second argument voltage in [mv]; third
-                        argument current in [mA] e.g. 0 5000 2000 will set SRC0 to 5V and 2A
-  --printRDO            shows actual settings (RDO) of STUSB4710
-  --printSRC            shows actual settings (SRC) of STUSB4710
+  --setPDO SETPDO [SETPDO ...]
+                        modify PDO of STUSB4710; first argument selects #PDO;second argument voltage in [mv]; third argument current in [mA] e.g. 1 5000 2000 will set PDO1 to 5V and 2A
+  --printRDO            shows actual settings requested data object (RDO) of STUSB4710
+  --printPDO            shows actual settings power data object (PDO) of STUSB4710
   --printNVM            shows actual content of non volatile memory (NVM) of STUSB4710
   --printToleranceVBUS  get full VBUS tolerance in percent of STUSB4710 [incl. 5 percent default]
   --printVBUSControl    get VBUS control register of STUSB4710
@@ -49,7 +48,7 @@ optional arguments:
 ```
 - show advertised src of USB-C PD
 ```
-python configSTUSB4710.py --printSRC
+python configSTUSB4710.py --printPDO
 
 PDO SRC#1:  PdoSink(voltage=5.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=1, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0801912c)
 PDO SRC#2:  PdoSink(voltage=9.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=0, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0002d12c)

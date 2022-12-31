@@ -490,7 +490,7 @@ class STUSB4710:
         return pdo
 
     # \brief Reads and then prints the Power Data Object
-    def print_pdo_src(self, device):
+    def print_pdo(self, device):
       for k, v in self.read_pdo(device, 0x71).items():
          print( "PDO SRC#" + str(k) + ": ", v)
 
@@ -547,24 +547,33 @@ class STUSB4710:
         device.WriteRequest(address=80, buffer=[0x22, vshift_high<<4 | vshift_low], count=2)
         time.sleep(0.05)
       
-    def modifySRC(self, device, pos, data):
-        buffer = [0x71+pos*4]
-        buffer.extend(data)
-        device.WriteRequest(address=80, buffer=buffer, count=len(buffer))
+    def modifyPDO(self, device, pos, data):
+        if (pos > 0) and (pos < 6):
+            buffer = [0x71+(pos-1)*4]
+            buffer.extend(data)
+            device.WriteRequest(address=80, buffer=buffer, count=len(buffer))
+            time.sleep(0.05)
+    
+    def reset(self, device):
+        device.WriteRequest(address=80, buffer=[0x23, 0x01], count=2)
+        time.sleep(0.05)
+        device.WriteRequest(address=80, buffer=[0x23, 0x00], count=2)
         time.sleep(0.05)
       
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Configure STUSB4710 for USB-C PD power supply simulation; (c) 12/2022 Steffen Mauch; MIT license')
+    parser.add_argument('-r', '--resetSTUSB', action="store_true",
+                        help='reset STUSB4710 via command')
     parser.add_argument('--setToleranceVBUS', dest='setToleranceVBUS', type=int, choices=range(0,16), 
                         metavar="[0-15]", default=-1, help='set additional VBUS tolerance in percent of STUSB4710')
-    parser.add_argument('--setSRC', required=False,  nargs='+', 
-                        help='modify SRC of STUSB4710; first argument selects SR;'+
+    parser.add_argument('--setPDO', required=False,  nargs='+', 
+                        help='modify PDO of STUSB4710; first argument selects #PDO;'+
                         'second argument voltage in [mv]; third argument current in [mA]'+
-                        ' e.g. 0 5000 2000 will set SRC0 to 5V and 2A')
+                        ' e.g. 1 5000 2000 will set PDO1 to 5V and 2A')
     parser.add_argument('--printRDO', dest='printRDO', action="store_true",
-                        help='shows actual settings (RDO) of STUSB4710')
-    parser.add_argument('--printSRC', dest='printSRC', action="store_true",
-                        help='shows actual settings (SRC) of STUSB4710')
+                        help='shows actual settings requested data object (RDO) of STUSB4710')
+    parser.add_argument('--printPDO', dest='printPDO', action="store_true",
+                        help='shows actual settings power data object (PDO) of STUSB4710')
     parser.add_argument('--printNVM', dest='printNVM', action="store_true",
                         help='shows actual content of non volatile memory (NVM) of STUSB4710')
     parser.add_argument('--printToleranceVBUS', action="store_true",
@@ -597,29 +606,36 @@ if __name__ == "__main__":
         print()
         #print(args)
         for arg in args:
-            if arg == 'setToleranceVBUS' and args[arg] != -1:
+            if arg == 'resetSTUSB' and args[arg] == True:
+                stusb.reset(smb)
+            elif arg == 'setToleranceVBUS' and args[arg] != -1:
                 stusb.write_monitoring_ctrl_2(smb, args['setToleranceVBUS'], args['setToleranceVBUS'])
             elif arg == 'printToleranceVBUS' and args[arg] == True:
                 stusb.printVBUSTolerance( stusb.read_monitoring_ctrl_2(smb) )
                 print("---------------------")
-            elif arg == 'setSRC' and args[arg] != None:
+            elif arg == 'setPDO' and args[arg] != None:
+            
+                if len(args[arg]) != 3:
+                    print( "  setSRC must have three additional parameters" )
+                    break
+                    
                 pos = int( args[arg][0] )
                 volt = math.floor( int( args[arg][1] ) / 50 ) & 0x3ff
                 current = math.floor( int( args[arg][2] ) / 10 ) & 0x3ff
                 
                 val = current + volt * 2**10
                 arrayVal = val.to_bytes(3, 'little');
-                if( pos < 0 or pos > 4 ):
-                    print( "  position of SRC must be between 0 and 4" )
+                if( pos < 1 or pos > 5 ):
+                    print( "  position of SRC must be between 1 and 5" )
                     break
                 
-                stusb.modifySRC(smb, pos, arrayVal )
+                stusb.modifyPDO(smb, pos, arrayVal )
                 time.sleep(0.05)
             elif arg == 'printRDO' and args[arg] == True:
                 print( stusb.read_rdo(smb) )
                 print("---------------------")
-            elif arg == 'printSRC' and args[arg] == True:
-                stusb.print_pdo_src(smb)
+            elif arg == 'printPDO' and args[arg] == True:
+                stusb.print_pdo(smb)
                 print("---------------------")
             elif arg == 'printNVM' and args[arg] == True:
                 stusb.nvm_dump(smb)
