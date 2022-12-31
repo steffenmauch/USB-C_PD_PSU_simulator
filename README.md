@@ -12,8 +12,51 @@ USB-C PD power supply simulator based on STUSB4710 with CP2112 USB/I2C interface
 - correspondig software is written with python 3
 - communication with STUSB4710 is realized with SiLabs 2112 USB to I2C/SMBUS interface chip
 
-### Usage
+### Hardware Setup
 
+<img src="./Images/USB-C_PSU_Simulator_PCB.png" width="200"/>
+
+Find schematic as PDF [here](./ECAD/USB-C_PSU_Simulator.pdf)
+
+### Usage
+- install python3 if not already installed; e.g. https://winpython.github.io/ for Windows users
+- download from www.silabs.com the driver containing the files 'SLABHIDDevice.*' and 'SLABHIDtoSMBus.*' (extension .dll for Windows)
+- copy both files into 'Software' subdirectory
+- execute e.g. 'python configSTUSB4710.py' in the 'Software' subdirectory
+```
+python configSTUSB4710.py
+usage: configSTUSB4710.py [-h] [--setToleranceVBUS [0-15]] [--setSRC SETSRC [SETSRC ...]] [--printRDO] [--printSRC]
+                          [--printNVM] [--printToleranceVBUS] [--printVBUSControl] [--printPortStatus]
+                          [--printSTUSBVersion] [-v]
+
+Configure STUSB4710 for USB-C PD power supply simulation; (c) 12/2022 Steffen Mauch; MIT license
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --setToleranceVBUS [0-15]
+                        set additional VBUS tolerance in percent of STUSB4710
+  --setSRC SETSRC [SETSRC ...]
+                        modify SRC of STUSB4710; first argument selects SR;second argument voltage in [mv]; third
+                        argument current in [mA] e.g. 0 5000 2000 will set SRC0 to 5V and 2A
+  --printRDO            shows actual settings (RDO) of STUSB4710
+  --printSRC            shows actual settings (SRC) of STUSB4710
+  --printNVM            shows actual content of non volatile memory (NVM) of STUSB4710
+  --printToleranceVBUS  get full VBUS tolerance in percent of STUSB4710 [incl. 5 percent default]
+  --printVBUSControl    get VBUS control register of STUSB4710
+  --printPortStatus     get port status register of STUSB4710
+  --printSTUSBVersion   get version register of STUSB4710
+  -v, --version         show version of python script
+```
+- show advertised src of USB-C PD
+```
+python configSTUSB4710.py --printSRC
+
+PDO SRC#1:  PdoSink(voltage=5.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=1, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0801912c)
+PDO SRC#2:  PdoSink(voltage=9.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=0, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0002d12c)
+PDO SRC#3:  PdoSink(voltage=12.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=0, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0003c12c)
+PDO SRC#4:  PdoSink(voltage=15.0V, current=3.0A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=0, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x0004b12c)
+PDO SRC#5:  PdoSink(voltage=20.0V, current=2.25A, fastRoleReqCur=0, dualRoleData=0, usbCommunicationsCapable=0, unconstrainedPower=0, higherCapability=0, dualRolePower=0, supply=Fixed, raw=0x000640e1)
+```
 
 ### Background information for STUSB4710
 - 'dm00664189-the-stusb4500-software-programing-guide-stmicroelectronics.pdf'
